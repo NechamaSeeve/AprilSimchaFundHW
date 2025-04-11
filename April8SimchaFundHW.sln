@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35303.130
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "April8SimchaFundHW.Web", "April8SimchaFundHW.Web\April8SimchaFundHW.Web.csproj", "{153B072A-8CED-4D01-91D7-AB0880180603}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "April8SimchaFundHw.Data", "April8SimchaFundHw.Data\April8SimchaFundHw.Data.csproj", "{38CE0C01-F229-4436-BE6C-FE27F215AD8A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{153B072A-8CED-4D01-91D7-AB0880180603}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{153B072A-8CED-4D01-91D7-AB0880180603}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{153B072A-8CED-4D01-91D7-AB0880180603}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{153B072A-8CED-4D01-91D7-AB0880180603}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38CE0C01-F229-4436-BE6C-FE27F215AD8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38CE0C01-F229-4436-BE6C-FE27F215AD8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38CE0C01-F229-4436-BE6C-FE27F215AD8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38CE0C01-F229-4436-BE6C-FE27F215AD8A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9552EFBF-F427-4FE0-AFB7-CB7E4602C9B3}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,56 @@
+﻿@using April8SimchaFundHw.Data
+@model ContributionsViewModel
+<div b-2ya7vgwtda class="container">
+        <main b-2ya7vgwtda role="main" class="pb-3" style="margin-top: 60px;">
+            
+<div class="header">
+    <h1>
+        Contributors for the @Model.SimchaId
+        
+    </h1>
+</div>
+<div class="table-responsive">
+    <form method="POST" action="/Home/updatecontributions">
+        <input type="hidden" name="simchaId" value="@Model.SimchaId" />
+        <table class="table table-bordered table-striped">
+            <tr>
+                <th>Contribute</th>
+                <th>Name</th>
+                <th>Balance</th>
+                <th>Always Include</th>
+                <th>Amount</th>
+            </tr>
+                   
+                    @foreach (Contributions contributions in Model.contributors)
+                    {
+                        int index = Model.contributors.IndexOf(contributions);
+                        <input type="hidden" name="contributors[@index].ContributorId" value="@contributions.contributor.Id" />
+                        <tr>
+                            <td>
+                                <div class="d-flex justify-content-center">
+                                    <div class="form-check form-switch">
+                                        <input style="width: 4rem; height: 2rem;" name="contributors[@index].Contribute" class="form-check-input" type="checkbox" value="true">
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@contributions.contributor.FirstName @contributions.contributor.LastName</td>
+                            <td>@contributions.contributor.Balance.ToString("C")</td>
+                            <td style="text-align: center;">
+                            </td>
+                            <td>
+                                <input type="text" name="contributors[@index].amount" class="form-control" value="5" />
+                            </td>
+                        </tr>
+                    }
+
+                
+
+                </table>
+                <div style="text-align:center;">
+                    <button class="btn-lg btn-danger">Update</button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+</div>
