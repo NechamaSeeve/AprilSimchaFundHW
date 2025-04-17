@@ -17,9 +17,13 @@ namespace April8SimchaFundHW.Web.Controllers
             {
                 simchas = db.GetSimchas(),
                 ContributorsCount = db.GetCountContributores()
-              
+
                 
             };
+            if (TempData["message"] != null)
+            {
+                vm.Message = (string)TempData["message"];
+            }
 
             return View(vm);
         }
@@ -29,7 +33,8 @@ namespace April8SimchaFundHW.Web.Controllers
             var vm = new ContributionsViewModel
             {
                 contributors = db.GetContributionsForID(),
-                SimchaId = simchaId,
+                SimchaName = db.GetSimchaNamebyId(simchaId),
+                SimchaId = simchaId
 
 
             };
@@ -40,6 +45,7 @@ namespace April8SimchaFundHW.Web.Controllers
         {
             var db = new SimchFundDb(_connectionString);
             db.UpdateContributions(contributors,simchaId);
+            TempData["message"] = "contribution Updated!";
             return Redirect("/");
         }
         [HttpPost]
@@ -47,6 +53,7 @@ namespace April8SimchaFundHW.Web.Controllers
         {
             var db = new SimchFundDb(_connectionString);
             db.NewSimcha(simcha);
+            TempData["message"] = "new Simcha added successfully!";
             return Redirect("/");
         }
 

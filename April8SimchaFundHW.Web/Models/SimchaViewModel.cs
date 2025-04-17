@@ -6,5 +6,6 @@ namespace April8SimchaFundHW.Web.Models
     {
         public List<Simcha> simchas { get; set; }
         public int ContributorsCount { get; set; }
+        public string Message { get; set; }
     }
 }

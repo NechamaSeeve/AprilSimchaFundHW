@@ -1,6 +1,8 @@
 ﻿using April8SimchaFundHw.Data;
 using April8SimchaFundHW.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Security.Cryptography.Xml;
 
 namespace April8SimchaFundHW.Web.Controllers
 {
@@ -13,8 +15,15 @@ namespace April8SimchaFundHW.Web.Controllers
             var vm = new ContributorsViewModel
             {
                 Contributors = db.GetContributors(),
-                Total = db.GetTotal()
+                Total = db.GetTotal(),
+               
+                
             };
+            if (TempData["success-message"] != null)
+            {
+                vm.Message = (string)TempData["success-message"];
+            }
+           
             return View(vm);
         }
         [HttpPost]
@@ -25,6 +34,7 @@ namespace April8SimchaFundHW.Web.Controllers
             deposit.ContributorId = contributor.Id;
            
             db.AddDeposite(deposit);
+            TempData["success-message"] = "new contibutor added successfully!";
             return Redirect("/Contributors");
         }
         [HttpPost]
@@ -32,6 +42,7 @@ namespace April8SimchaFundHW.Web.Controllers
         {
             var db = new SimchFundDb(_connectionString);
             db.AddDeposite(deposit);
+            TempData["success-message"] = "deposit added!";
             return Redirect("/Contributors");
         }
      
@@ -40,11 +51,24 @@ namespace April8SimchaFundHW.Web.Controllers
         {
             var db = new SimchFundDb(_connectionString);
             db.UpdateContributor(contributor);
+            TempData["success-message"] = "contibutor updated successfully!";
             return Redirect("/Contributors");
         }
         public IActionResult History(int contribid)
         {
-            return View();
+            var vm = new ContributorsViewModel();
+            var db = new SimchFundDb(_connectionString);
+           
+          
+            vm.Name = db.GetContributorNamebyId(contribid);
+            vm.Balance = db.GetBalanceById(contribid);
+            List<HistoryTransacions> historyTransacions = new();
+            historyTransacions.AddRange(db.DepositsHistory(contribid));
+            historyTransacions.AddRange(db.HistoryContributions(contribid));
+            vm.HistoryTransacions = historyTransacions.OrderBy(ht => ht.Date).ToList();
+          
+
+            return View(vm);
         }
     }
 }

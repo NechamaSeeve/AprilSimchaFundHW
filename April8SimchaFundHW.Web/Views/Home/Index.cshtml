@@ -1,7 +1,16 @@
 ﻿@using April8SimchaFundHw.Data
 @model SimchaViewModel
+
 <div b-2ya7vgwtda class="container">
+    
     <main b-2ya7vgwtda role="main" class="pb-3" style="margin-top: 60px;">
+        @if (!String.IsNullOrEmpty(Model.Message))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @Model.Message
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
 
         <div class="header">
             <h1>Simchas</h1>
@@ -41,10 +50,6 @@
                 </tbody>
             </table>
                     </div>
-                    
-
-
-
                     <div class="modal fade" tabindex="-1" role="dialog">
                         <div class="modal-dialog">
                             <div class="modal-content">

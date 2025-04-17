@@ -2,23 +2,49 @@
 using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace April8SimchaFundHw.Data
 {
-  
+
     public class Contributions
     {
         public int ContributorId { get; set; }
         public bool Contribute { get; set; }
-       public Contributor contributor { get; set; }
+        public Contributor contributor { get; set; }
         public decimal Amount { get; set; }
+        public DateTime SimchaDate { get; set; }
+        public string SimchaName { get; set; }
+
+    }
+    public class HistoryTransacions
+    {
+        public decimal Amount { get; set; }
+        public string Name { get; set; }
+        public DateTime Date { get; set; }
        
     }
-
+    public class History
+    {
+        public List<Deposit> Deposits { get; set; }
+        public List<HistoryTransacions> ContributrionHistory { get; set; }
+    }
     public class SimchFundDb
     {
+        string queryString = @"SELECT c.*, ISNULL(d.TotalDeposits, 0) - ISNULL(con.TotalContributions, 0) AS 'Balance'
+FROM Contributors c
+LEFT JOIN (
+    SELECT ContributorId, SUM(Amount) AS TotalDeposits
+    FROM Deposits
+    GROUP BY ContributorId
+) d ON c.Id = d.ContributorId
+LEFT JOIN (
+    SELECT ContributorId, SUM(Amount) AS TotalContributions
+    FROM Contributions
+    GROUP BY ContributorId
+) con ON c.Id = con.ContributorId";
         private readonly string _connectionString;
         public SimchFundDb(string connectionString)
         {
@@ -28,10 +54,7 @@ namespace April8SimchaFundHw.Data
         {
             using var connection = new SqlConnection(_connectionString);
             using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"Select c.Id, c.FirstName,c.LastName,c.CellNumber,c.AlwaysInclude,c.Date, Coalesce(Sum(d.Amount),0)- Coalesce(Sum(co.Amount),0) as 'balance' From Contributors c
-Left Join Deposits d on d.ContributorId = c.Id
-Left Join Contributions co on co.ContributorId = c.Id
-Group By c.Id, c.FirstName,c.LastName,c.CellNumber,c.AlwaysInclude,c.Date";
+            cmd.CommandText = queryString;
             connection.Open();
             var contributors = new List<Contributor>();
             var reader = cmd.ExecuteReader();
@@ -46,8 +69,10 @@ Group By c.Id, c.FirstName,c.LastName,c.CellNumber,c.AlwaysInclude,c.Date";
                     Date = (DateTime)reader["Date"],
                     AlwaysInclude = (bool)reader["AlwaysInclude"],
                     Balance = (decimal)reader["Balance"]
-                   
+
+
                 });
+
             }
             return contributors;
         }
@@ -56,7 +81,7 @@ Group By c.Id, c.FirstName,c.LastName,c.CellNumber,c.AlwaysInclude,c.Date";
         {
             using var connection = new SqlConnection(_connectionString);
             using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"Select s.* ,Sum(COALESCE(c.Amount,0)) As 'Total', Count(c.ContributorId) As 'ContributionsCount' From Simchas s
+            cmd.CommandText = @"Select s.* ,Sum(c.Amount) As 'Total', Count(c.ContributorId) As 'ContributionsCount' From Simchas s
 Left Join Contributions c
 on s.Id = c.SimchaId
 Where s.Id = s.Id
@@ -71,7 +96,7 @@ Group By s.Name,s.Id,s.Date";
                     Id = (int)reader["Id"],
                     Name = (string)reader["Name"],
                     Date = (DateTime)reader["Date"],
-                    Total = (decimal)reader["Total"],
+                    Total = reader.GetOrNull<decimal>("Total"),
                     ContributionsCount = (int)reader["ContributionsCount"],
                 });
             }
@@ -83,7 +108,7 @@ Group By s.Name,s.Id,s.Date";
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"Select Count(id) from Contributors";
             connection.Open();
-           return (int)cmd.ExecuteScalar();
+            return (int)cmd.ExecuteScalar();
 
 
         }
@@ -101,7 +126,7 @@ Group By s.Name,s.Id,s.Date";
             connection.Open();
             c.Id = (int)(decimal)cmd.ExecuteScalar();
 
-            
+
         }
         public void UpdateContributor(Contributor c)
         {
@@ -137,10 +162,7 @@ Where id = @id";
         {
             using var connection = new SqlConnection(_connectionString);
             using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"SELECT c.Id, c.FirstName,c.LastName,c.AlwaysInclude,Sum(d.Amount)- Coalesce(Sum(co.Amount),0) as 'balance' From Contributors c
-Left Join Deposits d on d.ContributorId = c.Id
-Left Join Contributions co on co.ContributorId = c.Id
-Group By c.Id, c.FirstName,c.LastName,c.AlwaysInclude";
+            cmd.CommandText = queryString;
 
             connection.Open();
 
@@ -156,9 +178,10 @@ Group By c.Id, c.FirstName,c.LastName,c.AlwaysInclude";
                         Id = (int)reader["Id"],
                         FirstName = (string)reader["FirstName"],
                         LastName = (string)reader["LastName"],
-
                         AlwaysInclude = (bool)reader["AlwaysInclude"],
                         Balance = (decimal)reader["Balance"]
+
+
                     }
 
 
@@ -167,6 +190,56 @@ Group By c.Id, c.FirstName,c.LastName,c.AlwaysInclude";
                 });
             }
             return contributions;
+        }
+        public string GetSimchaNamebyId(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"Select Name From Simchas Where id = @id";
+            cmd.Parameters.AddWithValue("@id", id);
+
+            connection.Open();
+            string name = (string)cmd.ExecuteScalar();
+
+            return name;
+
+
+        }
+        public string GetContributorNamebyId(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"Select firstName,lastname From contributors Where id = @id";
+            cmd.Parameters.AddWithValue("@id", id);
+
+            connection.Open();
+            var reader = cmd.ExecuteReader();
+            reader.Read();
+            string firstName = (string)reader["firstName"];
+            string LastName = (string)reader["LastName"];
+
+            return firstName + " " + LastName;
+
+
+        }
+        public decimal GetBalanceById(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"Select (select sum(Amount) from Deposits where ContributorId = @id) as 'deposit Total', (select sum(Amount) from Contributions where ContributorId = @id) as 'contribution total'";
+
+            cmd.Parameters.AddWithValue("@id", id);
+
+            connection.Open();
+            SqlDataReader reader = cmd.ExecuteReader();
+            reader.Read();
+
+            decimal contribTotal = reader.GetOrNull<decimal>("contribution total");
+            decimal depositTotal = reader.GetOrNull<decimal>("deposit Total");
+
+            return depositTotal - contribTotal;
+
+
         }
 
 
@@ -178,15 +251,15 @@ Group By c.Id, c.FirstName,c.LastName,c.AlwaysInclude";
 
 
             cmd.CommandText = @"Delete From Contributions Where SimchaId = @simchaId";
-           connection.Open();
+            connection.Open();
             cmd.Parameters.AddWithValue("@simchaId", simchaId);
             cmd.ExecuteNonQuery();
             cmd.CommandText = "Insert into Contributions(SimchaId, ContributorId, Amount) Values(@simchaId, @contributorId, @amount)";
 
-         
+
             foreach (Contributions c in Contributions)
             {
-                if(c.Contribute)
+                if (c.Contribute)
                 {
                     cmd.Parameters.Clear();
                     cmd.Parameters.AddWithValue("@simchaId", simchaId);
@@ -196,7 +269,7 @@ Group By c.Id, c.FirstName,c.LastName,c.AlwaysInclude";
                 }
 
             }
-           
+
 
 
         }
@@ -207,22 +280,96 @@ Group By c.Id, c.FirstName,c.LastName,c.AlwaysInclude";
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"Insert into Simchas Values(@Name,@Date)";
             cmd.Parameters.AddWithValue("@Name", simcha.Name);
-            cmd.Parameters.AddWithValue("@date",simcha.Date);
+            cmd.Parameters.AddWithValue("@date", simcha.Date);
 
             connection.Open();
-           cmd.ExecuteNonQuery();
+            cmd.ExecuteNonQuery();
         }
+
+
         public int GetTotal()
         {
             using var connection = new SqlConnection(_connectionString);
             using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"Select
-(Select COALESCE(Sum(amount),0)From deposits) - 
-(Select COALESCE(Sum(amount),0)From Contributions)";
+            cmd.CommandText = @"Select (Select COALESCE(Sum(Amount),0) From deposits)-(Select COALESCE(Sum(Amount),0) From Contributions)";
 
             connection.Open();
             return (int)(decimal)cmd.ExecuteScalar();
 
         }
+
+        public List<HistoryTransacions> DepositsHistory(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"Select d.Amount ,d.Date from Deposits d
+join Contributors c
+on c.Id = d.ContributorId
+Where c.Id = @id";
+            cmd.Parameters.AddWithValue("@id", id);
+            var depositHistory = new List<HistoryTransacions>();
+
+            connection.Open();
+
+            var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                depositHistory.Add(new()
+                {
+                    Name = "Deposit",
+                    Amount = (decimal)reader["Amount"],
+                    Date = (DateTime)reader["date"],
+
+                });
+
+            }
+            return depositHistory;
+        }
+    
+        public List<HistoryTransacions> HistoryContributions(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"Select co.Amount,s.Date,s.Name from Contributions co
+Join Simchas s
+on s.Id = co.SimchaId
+Join Contributors c
+on c.Id = co.ContributorId
+Where c.Id = @id
+";
+            cmd.Parameters.AddWithValue("@id", id);
+            connection.Open();
+            var reader = cmd.ExecuteReader();
+            var contributionsHistory = new List<HistoryTransacions>();
+            while (reader.Read())
+            {
+                contributionsHistory.Add(new()
+                {
+                    Amount = (decimal)reader["Amount"],
+                    Date = (DateTime)reader["date"],
+                    Name = "contribution for" + " " +(string)reader["Name"]
+
+                });
+
+            }
+            return contributionsHistory;
+        }
+
+        }
+    
+
+    public static class Extensions
+    {
+        public static T GetOrNull<T>(this SqlDataReader reader, string columnName)
+        {
+            var value = reader[columnName];
+            if (value == DBNull.Value)
+            {
+                return default(T);
+            }
+
+            return (T)value;
+        }
     }
 }
+
